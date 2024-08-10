@@ -1,4 +1,60 @@
 const db = require('../config/db');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Register a new user
+exports.registerUser = async (req, res) => {
+  const { firstname, lastname, username, password } = req.body;
+  
+  try {
+
+    // Log the input data for debugging
+    console.log("Received data:", { firstname, lastname, username, password });
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // SQL query to insert a new user
+    const sql = 'INSERT INTO users (firstname, lastname, username, password) VALUES (?, ?, ?, ?)';
+    db.execute(sql, [firstname, lastname, username, hashedPassword], (err, result) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(201).send({ message: 'User registered successfully!' });
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
+};
+
+// Login a user
+exports.loginUser = (req, res) => {
+  const { username, password } = req.body;
+  
+  const sql = 'SELECT * FROM users WHERE username = ?';
+  
+  db.execute(sql, [username], async (err, results) => {
+    if (err) return res.status(500).send(err);
+    
+    if (results.length === 0) {
+      return res.status(404).send({ message: 'User not found' });
+    }
+    
+    const user = results[0];
+    
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      return res.status(400).send({ message: 'Invalid credentials' });
+    }
+    
+    // Generate JWT and respond
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.status(200).send({ token });
+  });
+};
 
 // Create a new user
 exports.createUser = (req, res) => {
