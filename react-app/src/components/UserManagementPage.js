@@ -1,12 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../redux/slices/userSlice';
 
 const UserManagementPage = () => {
-  //const users = useSelector(state => state.users);
+  const user = useSelector(selectUser);
+  let username = '';
+
+  if (user) {
+    username = user.username;
+  }
 
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
+
+  const [editUser, setEditUser] = useState(null);
+  const [firstname, setFirstname] = useState('');
+  const [lastname, setLastname] = useState('');
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -15,7 +26,7 @@ const UserManagementPage = () => {
       setError('Not Authorized');
       return;
     }
-    axios.get('/api/users', {
+    axios.get('http://localhost:8080/api/users', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -26,33 +37,50 @@ const UserManagementPage = () => {
       .catch((error) => {
         setError('Failed to fetch users');
         console.error(error);
-      });
-  }, []);
-
-  const dispatch = useDispatch();
-
-  const [editUser, setEditUser] = useState(null);
-  const [firstname, setFirstname] = useState('');
-  const [lastname, setLastname] = useState('');
+    });
+  }, [users]);
 
   const handleEdit = (user) => {
-    // setEditUser(user);
-    // setFirstname(user.firstname);
-    // setLastname(user.lastname);
+    setEditUser(user);
+    setFirstname(user.firstname);
+    setLastname(user.lastname);
+    setUserId(user.id);
   };
 
   const handleUpdate = () => {
-    // dispatch({
-    //   type: 'UPDATE_USER',
-    //   payload: { ...editUser, firstname, lastname },
-    // });
-    // setEditUser(null);
-    // setFirstname('');
-    // setLastname('');
+    const token = localStorage.getItem('token');
+    axios.put(`http://localhost:8080/api/users/${userId}`, {firstname, lastname}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      //alert('User Updated Successful');
+    })
+    .catch((error) => {
+      alert('User Update Failed');
+      console.error(error);
+    });
+    setEditUser(null);
+    setFirstname('');
+    setLastname('');
+    setUserId('');
   };
 
   const handleDelete = (id) => {
-    //dispatch({ type: 'DELETE_USER', payload: id });
+    const token = localStorage.getItem('token');
+    axios.delete(`http://localhost:8080/api/users/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      //alert('User Deleted Successful');
+    })
+    .catch((error) => {
+      alert('User Delete Failed');
+      console.error(error);
+    });
   };
 
   if (error) {
@@ -106,9 +134,7 @@ const UserManagementPage = () => {
                   <button onClick={() => handleEdit(user)} style={styles.editButton}>
                     Edit
                   </button>
-                  <button onClick={() => handleDelete(user.id)} style={styles.deleteButton}>
-                    Delete
-                  </button>
+                  {user.username === username ? <button disabled="true" style={styles.deleteButtondisabled}>Delete</button> : <button onClick={() => handleDelete(user.id)} style={styles.deleteButton}>Delete</button>}
                 </td>
               </tr>
             ))}
@@ -138,6 +164,7 @@ const styles = {
     color: '#FFF',
     border: 'none',
     borderRadius: '5px',
+    cursor: 'pointer'
   },
   table: {
     margin: '20px auto',
@@ -145,12 +172,13 @@ const styles = {
     width: '80%',
   },
   editButton: {
-    background: '#ffc107',
-    color: '#000',
+    background: '#28a745',
+    color: '#FFF',
     padding: '5px 10px',
     marginRight: '5px',
     border: 'none',
     borderRadius: '5px',
+    cursor: 'pointer'
   },
   deleteButton: {
     background: '#dc3545',
@@ -158,7 +186,15 @@ const styles = {
     padding: '5px 10px',
     border: 'none',
     borderRadius: '5px',
+    cursor: 'pointer'
   },
+  deleteButtondisabled: {
+    background: '#b02a37',
+    color: '#FFF',
+    padding: '5px 10px',
+    border: 'none',
+    borderRadius: '5px',
+  }
 };
 
 export default UserManagementPage;

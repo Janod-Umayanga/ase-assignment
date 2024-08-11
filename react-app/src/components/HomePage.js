@@ -47,11 +47,14 @@ const styles = {
     borderRadius: '5px',
   },
   button: {
+    margin: '10px',
     padding: '10px 20px',
+    textDecoration: 'none',
     background: '#28a745',
     color: '#FFF',
     border: 'none',
     borderRadius: '5px',
+    cursor: 'pointer'
   }
 };
 

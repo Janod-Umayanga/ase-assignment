@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -9,7 +8,6 @@ const RegisterPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   function validateForm(firstname, lastname, username, password) {
@@ -28,12 +26,17 @@ const RegisterPage = () => {
     if (validateForm(firstname, lastname, username, password)) {
         axios.post('http://localhost:8080/api/register', {firstname, lastname, username, password}).then((res) => {
             if(res.status === 201) {
-                //navigate('/');
                 alert('Register Successful');
+                navigate('/login')
             } else {
                 alert('Register Failed');
             }
         }).catch((error) => {
+            if (error.response.status === 409) {
+                setErrorMessage('Username already exists');
+            } else {
+                setErrorMessage('Register Failed');
+            }
             console.error('Register failed:', error);
         });
     }
@@ -96,6 +99,7 @@ const styles = {
     color: '#FFF',
     border: 'none',
     borderRadius: '5px',
+    cursor: 'pointer'
   },
   span: {
     color: '#f56565',

@@ -18,7 +18,13 @@ exports.registerUser = async (req, res) => {
     const sql = 'INSERT INTO users (firstname, lastname, username, password) VALUES (?, ?, ?, ?)';
     db.execute(sql, [firstname, lastname, username, hashedPassword], (err, result) => {
       if (err) {
-        return res.status(500).send(err);
+        if (err.code === 'ER_DUP_ENTRY') {
+          // Handle duplicate username error (for MySQL)
+          return res.status(409).send('Username already exists');
+        } else {
+          return res.status(500).send('An unexpected error occurred');
+        }
+        //return res.status(500).send(err);
       }
       res.status(201).send({ message: 'User registered successfully!' });
     });

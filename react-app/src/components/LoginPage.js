@@ -38,10 +38,17 @@ const LoginPage = () => {
             token: token
           }));
 
+          setErrorMessage('');
+
           navigate('/');
         }
       })
       .catch((error) => {
+        if (error.response.status === 404) {
+          setErrorMessage('User not found');
+        } else if (error.response.status === 400) {
+          setErrorMessage('Invalid Credentials');
+        }
         console.error('Login failed:', error);
       });
     }
@@ -100,6 +107,7 @@ const styles = {
     color: '#FFF',
     border: 'none',
     borderRadius: '5px',
+    cursor: 'pointer'
   },
   span: {
     color: '#f56565',
