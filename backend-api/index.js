@@ -1,9 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
 require('dotenv').config();
 
 const app = express();
+
+app.use(cors({
+  origin: ['http://localhost:3000'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE' , 'PUT'],
+  credentials: true
+}));
 app.use(bodyParser.json());
 app.use('/api', userRoutes);
 
